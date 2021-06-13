@@ -255,7 +255,7 @@ def get_sold_products(date):
 
 
 def display_sales_data(args):
-    """Display sales, revenue or profit based on given day."""
+    """Display sales, revenue, costs or profit based on given day."""
     today = open('current_date.txt').read()
     yesterday = (datetime.strptime(today, '%Y-%m-%d')
                  - timedelta(days=1)).strftime('%Y-%m-%d')
