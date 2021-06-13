@@ -37,7 +37,7 @@ def update_inventory(all_products):
             product_writer.writerow(product)
 ```
 ## Handling expiration dates
-Supermarkets are known for buying and selling products that do not have an expiration date. Because of this, I decided to make sure that SuperPy only optionally stores an expiration date for each product. This also becomes relevant when looking for matching products to sell. This function is run in order to ensure a product does not have an expiration date in case the user wants to sell a non-expiring product.
+Some products offered by supermarkets do not have an expiration date. Because of this, I decided to make sure that SuperPy only optionally stores an expiration date for each product. This also becomes relevant when looking for matching products to sell. This function is run in order to ensure a product does not have an expiration date in case the user wants to sell a non-expiring product.
 ```python
 def product_is_non_expiring(product):
     """Check if product is non-expiring (e.g. kitchen utensils)."""
