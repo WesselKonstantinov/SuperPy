@@ -442,6 +442,12 @@ def visualize_financial_records(args):
         record_reader = csv.DictReader(csv_file)
         all_records = [record for record in record_reader]
 
+        # Sort all records by date to make them appear in the correct
+        # order in the generated chart
+        all_records.sort(key=lambda record: datetime.strptime(
+            record['date'], '%Y-%m-%d'
+        ))
+
         # Get MM-DD format for each date
         dates = [record['date'][5:] for record in all_records]
         costs = [float(record['costs']) for record in all_records]
