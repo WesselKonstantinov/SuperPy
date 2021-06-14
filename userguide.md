@@ -241,6 +241,6 @@ OK
 Successfully created chart.
 ```
 The line chart is displayed like this:
-![Line chart figure](.github/images/line-chart.png)
+![line-chart](https://user-images.githubusercontent.com/69632494/121910051-cdcebd80-cd2e-11eb-9056-c2245ed36ec3.png)
 And the bar chart like this:
-![Bar chart figure](.github/images/bar-chart.png)
+![bar-chart](https://user-images.githubusercontent.com/69632494/121910508-31f18180-cd2f-11eb-8399-1a20968a53ae.png)
