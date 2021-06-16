@@ -21,11 +21,27 @@ from rich.table import Table
 
 # Date-related functions
 def advance_date(args):
-    """Increment the current date by given number of days."""
+    """Increment the current date by given number of days.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * days
+        * func
+
+    Returns
+    -------
+    None : None
+        The current date is updated and a message confirming the update
+        along with the new current date is printed to the terminal.
+    """
     current_date = open('current_date.txt').read()
     new_current_date = (datetime.strptime(current_date, '%Y-%m-%d')
                         + timedelta(days=args.days)).strftime('%Y-%m-%d')
 
+    # Overwrite text file to record the new current date.
     with open('current_date.txt', 'w') as text_file:
         text_file.write(new_current_date)
 
@@ -34,7 +50,21 @@ def advance_date(args):
 
 
 def show_current_date(args):
-    """Display the current date that has been set to today."""
+    """Display the current date that has been set to today.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * verbose
+        * func
+
+    Returns
+    -------
+    None : None
+        The current date is printed to the terminal.
+    """
     current_date = open('current_date.txt').read()
     if args.verbose:
         rprint(f'Current date is: {current_date}')
@@ -44,7 +74,24 @@ def show_current_date(args):
 
 # Product-related functions
 def buy_product(args):
-    """Buy and store product in inventory."""
+    """Buy and store product in inventory.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * product_name
+        * buy_price
+        * expiration_date
+        * func
+
+    Returns
+    -------
+    None : None
+        The product that has been bought is stored and a message
+        confirming this is printed to the terminal.
+    """
     buy_date = open('current_date.txt').read()
     product = {
         'id': uuid4(),
@@ -72,31 +119,85 @@ def buy_product(args):
 
 
 def product_is_non_expiring(product):
-    """Check if product is non-expiring (e.g. kitchen utensils)."""
+    """Check if product is non-expiring (e.g. kitchen utensils).
+
+    Parameters
+    ----------
+    product : dict
+        A product that has been added to the inventory.
+
+    Returns
+    -------
+    bool
+        True if the value of the 'expiration_date' key is empty,
+        otherwise False.
+    """
     return not product['expiration_date']
 
 
 def product_is_fresh(product):
-    """Check if product is not expired."""
+    """Check if product is not expired.
+
+    Parameters
+    ----------
+    product : dict
+        A product that has been added to the inventory.
+
+    Returns
+    -------
+    bool
+        True if the value of the 'expiration_date' key is equal to or
+        larger than the current date, otherwise False.
+    """
     current_date = open('current_date.txt').read()
     return product['expiration_date'] >= current_date
 
 
 def product_is_in_stock(product):
-    """Check if product has not yet been sold."""
+    """Check if product has not yet been sold.
+
+    Parameters
+    ----------
+    product : dict
+        A product that may have already been sold.
+
+    Returns
+    -------
+    bool
+        True if the relevant product has not yet been sold and the
+        current date is equal to or larger than the buying date,
+        otherwise False.
+    """
     current_date = open('current_date.txt').read()
     with open('products.csv', newline='') as csv_file:
         product_reader = csv.DictReader(csv_file)
         product_id = product['id']
+
+        # Products are considered sold when they have a clearly defined
+        # selling date.
         sold_products_ids = [product['id'] for product in product_reader
                              if product['sell_date']]
+
     # Make product available for sale from the day it has been bought.
     return product_id not in sold_products_ids and \
         current_date >= product['buy_date']
 
 
 def update_inventory(all_products):
-    """Update inventory after product has been sold."""
+    """Update inventory after product has been sold.
+
+    Parameters
+    ----------
+    all_products: list
+        A list of each and every recorded product.
+
+    Returns
+    -------
+    None : None
+        'products.csv' is overwritten with the data of all products,
+        including the one that has been sold (and now has a selling
+        price and date).
+    """
     with open('products.csv', 'w', newline='') as csv_file:
         fieldnames = [
             'id',
@@ -114,7 +215,25 @@ def update_inventory(all_products):
 
 
 def sell_product(args):
-    """ Sell product from inventory."""
+    """ Sell product from inventory.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * product_name
+        * sell_price
+        * func
+
+    Returns
+    -------
+    None : None
+        A message confirming the sale is printed to the terminal if a
+        matching product has been found to sell. Otherwise, it prints a
+        message stating that an error occurred, because the product has
+        either expired or is not in stock.
+    """
     with open('products.csv', newline='') as csv_file:
         product_reader = csv.DictReader(csv_file)
         all_products = [product for product in product_reader]
@@ -134,6 +253,7 @@ def sell_product(args):
         matching_product['sell_price'] = args.sell_price
         matching_product['sell_date'] = sell_date
 
+        # Find and update product with newly added values.
         for product in all_products:
             if product['id'] == matching_product['id']:
                 product = matching_product
@@ -149,7 +269,24 @@ def sell_product(args):
 
 # Function related to current inventory
 def display_current_inventory(args):
-    """Show products that are in stock (optionally by count)."""
+    """Show products that are in stock (optionally by count).
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * count
+        * func
+
+    Returns
+    -------
+    None : None
+        A table showing each product along with its buy price and
+        expiration date is printed to the terminal. If the count flag
+        has been added, the table shows the number of each product. If
+        no products are present, an error message is printed instead.
+    """
     with open('products.csv', newline='') as csv_file:
         product_reader = csv.DictReader(csv_file)
         products_in_stock = [product for product in product_reader
@@ -162,6 +299,9 @@ def display_current_inventory(args):
 
         if products_in_stock:
             product_counter = Counter()
+
+            # Count each product and sort them by name to make them
+            # appear in alphabetical order in the generated table.
             for product_in_stock in sorted(products_in_stock,
                                            key=lambda product:
                                            product['product_name']):
@@ -181,10 +321,14 @@ def display_current_inventory(args):
         inventory_table.add_column('Expiration Date', style='dark_sea_green4')
 
         if products_in_stock:
+            # Again, sort products by name to make them appear in
+            # alphabetical order in the generated table.
             for product_in_stock in sorted(products_in_stock,
                                            key=lambda product:
                                            product['product_name']):
 
+                # Set correct display in the table for non-expiring
+                # products and products that have already expired.
                 if product_is_non_expiring(product_in_stock):
                     product_in_stock['expiration_date'] = 'Non-expiring'
                 if not product_is_fresh(product_in_stock):
@@ -204,7 +348,19 @@ def display_current_inventory(args):
 
 # Functions related to sales, revenue, costs and profit
 def get_costs(date):
-    """Calculate and return costs of sold products for a given date."""
+    """Calculate and return costs of sold products for a given date.
+
+    Parameters
+    ----------
+    date : str
+        A date representing either today, yesterday or any other given
+        date.
+
+    Returns
+    -------
+    costs : float
+        The costs of all sold products on the specific date.
+    """
     with open('products.csv', newline='') as csv_file:
         costs = 0
         product_reader = csv.DictReader(csv_file)
@@ -220,7 +376,19 @@ def get_costs(date):
 
 
 def get_revenue(date):
-    """Calculate and return revenue for a given date."""
+    """Calculate and return revenue for a given date.
+
+    Parameters
+    ----------
+    date : str
+        A date representing either today, yesterday or any other given
+        date.
+
+    Returns
+    -------
+    revenue : float
+        The revenue that has been made on the specific date.
+    """
     with open('products.csv', newline='') as csv_file:
         revenue = 0
         product_reader = csv.DictReader(csv_file)
@@ -236,7 +404,19 @@ def get_revenue(date):
 
 
 def get_profit(date):
-    """Calculate and return profit for a given date."""
+    """Calculate and return profit for a given date.
+
+    Parameters
+    ----------
+    date : str
+        A date representing either today, yesterday or any other given
+        date.
+
+    Returns
+    -------
+    profit : float
+        The profit that has been made on the specific date.
+    """
     revenue = get_revenue(date)
     costs = get_costs(date)
     profit = round(revenue - costs, 2)
@@ -245,7 +425,19 @@ def get_profit(date):
 
 
 def get_sold_products(date):
-    """Return sold products for a given date."""
+    """Return sold products for a given date.
+
+    Parameters
+    ----------
+    date : str
+        A date representing either today, yesterday or any other given
+        date.
+
+    Returns
+    -------
+    sold_products : list
+        A list of products that have been sold on the specific date.
+    """
     with open('products.csv', newline='') as csv_file:
         product_reader = csv.DictReader(csv_file)
         sold_products = [product for product in product_reader
@@ -255,7 +447,28 @@ def get_sold_products(date):
 
 
 def display_sales_data(args):
-    """Display sales, revenue, costs or profit based on given day."""
+    """Display sales, revenue, costs or profit based on given day.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * information
+        * today
+        * yesterday
+        * date
+        * func
+
+    Returns
+    -------
+    None : None
+        Costs, revenue or profit for either today, yesterday or any
+        given date are printed to the terminal (defaults to 0 if no
+        information has been found). If the user requests sales, either
+        a table displaying each sold product is printed or an error
+        message saying that no sales data is available.
+    """
     today = open('current_date.txt').read()
     yesterday = (datetime.strptime(today, '%Y-%m-%d')
                  - timedelta(days=1)).strftime('%Y-%m-%d')
@@ -349,6 +562,8 @@ def display_sales_data(args):
         sales_table.add_column('Sell Price', style='bright_green')
 
         if sold_products:
+            # Again, sort products by name to make them appear in
+            # alphabetical order in the generated table.
             for sold_product in sorted(sold_products,
                                        key=lambda product:
                                        product['product_name']):
@@ -366,7 +581,24 @@ def display_sales_data(args):
 
 # Functions related to recording and visualizing financial data
 def record_sales_data(args):
-    """Record costs, revenue and profit for given date."""
+    """Record costs, revenue and profit for given date.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * today
+        * yesterday
+        * date
+        * func
+
+    Returns
+    -------
+    None : None
+        A message saying that the costs, revenue and profit have been
+        recorded for the specified day is printed to the terminal.
+    """
     today = open('current_date.txt').read()
     yesterday = (datetime.strptime(today, '%Y-%m-%d')
                  - timedelta(days=1)).strftime('%Y-%m-%d')
@@ -407,8 +639,9 @@ def record_sales_data(args):
         all_records = [record for record in record_reader]
         recorded_dates = [record['date'] for record in all_records]
 
-    # Dates that have not yet been recorded will be newly added to the
-    # file, while existing dates will be updated.
+    # Dates that have not yet been recorded are newly added to the file
+    # and existing dates are updated with the latest values for costs,
+    # revenue and profit
     if new_record['date'] in recorded_dates:
         for record in all_records:
             if record['date'] == new_record['date']:
@@ -437,7 +670,23 @@ def record_sales_data(args):
 
 
 def visualize_financial_records(args):
-    """Show recorded data in a line or bar chart."""
+    """Show recorded data in a line or bar chart.
+
+    Parameters
+    ----------
+    args : argparse.Namespace
+        A namespace containing the following fields:
+
+        * type
+        * func
+
+    Returns
+    -------
+    None : None
+        Depending on the selected type, a line or bar chart that
+        represents the data in 'financial_records.csv' is created
+        and displayed.
+    """
     with open('financial_records.csv', newline='') as csv_file:
         record_reader = csv.DictReader(csv_file)
         all_records = [record for record in record_reader]
@@ -445,7 +694,8 @@ def visualize_financial_records(args):
         # Sort all records by date to make them appear in the correct
         # order in the generated chart
         all_records.sort(key=lambda record: datetime.strptime(
-            record['date'], '%Y-%m-%d'
+            record['date'],
+            '%Y-%m-%d'
         ))
 
         # Get MM-DD format for each date
@@ -470,8 +720,8 @@ def visualize_financial_records(args):
         ax.plot(dates, profit, label='Profit', color='green')
 
     ax.axhline(0, color='black', linewidth=0.8)
-    ax.set_ylabel('Costs, revenue and profit')
     ax.set_title('Financial overview for each day')
+    ax.set_ylabel('Costs, revenue and profit')
     ax.set_xlabel('Days (MM-DD)')
     ax.set_xticks(x)
     ax.set_xticklabels(dates)

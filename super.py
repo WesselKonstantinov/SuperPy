@@ -173,6 +173,7 @@ def generate_parser():
         help='sales, revenue, costs or profit for given date in YYYY-MM-DD \
         format',
         metavar='',
+        # Again, check specifically for YYYY-MM-DD format
         type=lambda date:
         datetime.strptime(date, '%Y-%m-%d').date().strftime('%Y-%m-%d')
     )
@@ -202,6 +203,7 @@ def generate_parser():
         '--date',
         help='costs, revenue and profit for given date in YYYY-MM-DD format',
         metavar='',
+        # Again, check specifically for YYYY-MM-DD format
         type=lambda date:
         datetime.strptime(date, '%Y-%m-%d').date().strftime('%Y-%m-%d')
     )
@@ -229,10 +231,12 @@ def generate_parser():
 
 
 def main():
+    # Create necessary files first to make them ready for access.
     generate_current_date_file()
     generate_products_file()
     generate_financial_records_file()
 
+    # Parse args and call the function associated with each command.
     args = generate_parser()
     args.func(args)
 
